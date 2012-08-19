@@ -143,7 +143,7 @@ var loadData = function(){
 			}
 			html += '</ul>';
 			$status.html(html);
-			if (!up) $restart.removeClass('hidden');
+			up ? $restart.addClass('hidden') : $restart.removeClass('hidden');
 		},
 		error: psError,
 		complete: function(){

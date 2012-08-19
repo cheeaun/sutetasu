@@ -1,0 +1,16 @@
+{
+	"name": "sutetasu",
+	"version": "0.1.0",
+	"node": "0.8.1",
+	"engines": {
+		"node": "0.8.x",
+		"npm": "1.1.x"
+	},
+	"dependencies": {
+		"request": "2.9.x",
+		"nconf": "0.6.x",
+		"express": "3.0.x",
+		"consolidate": "0.4.x",
+		"hogan.js": ">=2.0.x"
+	}
+}

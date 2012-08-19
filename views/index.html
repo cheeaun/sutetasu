@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Sutetasu: {{appName}}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/css/bootstrap-combined.min.css">
+<style>
+.container{
+	margin-top: 10px;
+}
+.container h1{
+	font-size: 40px;
+	letter-spacing: -1px;
+	margin-bottom: 9px;
+}
+#reload-button{
+	float: right;
+}
+#reload-button .icon-refresh{
+	-webkit-transform: rotate(0.1deg);
+	-moz-transform: rotate(0.1deg);
+	transform: rotate(0.1deg);
+}
+#reload-button:not([disabled]) .icon-refresh{
+	-webkit-transition: -webkit-transform .5s;
+	-moz-transition: -moz-transform .5s;
+	transition: transform .5s;
+}
+@-webkit-keyframes loading{
+	from{
+		-webkit-transform: rotate(0deg);
+	}
+	to{
+		-webkit-transform: rotate(360deg);
+	}
+}
+@-moz-keyframes loading{
+	from{
+		-moz-transform: rotate(0deg);
+	}
+	to{
+		-moz-transform: rotate(360deg);
+	}
+}
+@keyframes loading{
+	from{
+		transform: rotate(0deg);
+	}
+	to{
+		transform: rotate(360deg);
+	}
+}
+#reload-button[disabled] .icon-refresh{
+	-webkit-animation: loading 1.5s linear infinite;
+	-moz-animation: loading 1.5s linear infinite;
+	animation: loading 1.5s linear infinite;
+}
+#restart-ps-button{
+	width: 100%;
+	margin: 0 0 9px;
+}
+#status-container{
+	margin-bottom: 9px;
+}
+#status-container ul{
+	display: block;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+#status-container ul li{
+	display: block;
+	padding: 15px;
+	background-color: #B94A48;
+	color: #fff;
+	border-radius: 6px;
+	margin: 0 0 9px;
+}
+#status-container ul li.up{
+	background-color: #468847;
+}
+#status-container ul li strong{
+	font-size: 30px;
+}
+#logs-container pre{
+	overflow: auto;
+	white-space: pre;
+	word-break: keep-all;
+	word-wrap: normal;
+	-webkit-overflow-scrolling: touch;
+	min-height: 10em;
+	resize: vertical;
+}
+</style>
+<div class="container">
+	<header>
+		<button class="btn" id="reload-button"><i class="icon-refresh"></i></button>
+		<h1>Sutetasu: {{appName}}</h1>
+	</header>
+	<button class="btn hidden" id="restart-ps-button">Restart App</button>
+	<div id="status-container">Loading&hellip;</div>
+	<div id="logs-container">
+		<pre>Loading&hellip;</pre>
+	</div>
+</div>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/zepto/1.0rc1/zepto.min.js"></script>
+<script>
+var $status = $('#status-container');
+var $logs = $('#logs-container');
+var $reload = $('#reload-button');
+var $restart = $('#restart-ps-button');
+
+var loading = false;
+var loadData = function(){
+	if (loading) return;
+	loading = true;
+	$reload.prop('disabled', true);
+	var loads = 0;
+
+	var psError = function(){
+		$status.html('<div class="alert alert-error">Unable to load process status of the app.</div>');
+	};
+	$.ajax({
+		url: '/api/ps',
+		success: function(data){
+			if (!data){
+				psError();
+				return;
+			}
+			data = JSON.parse(data);
+			if (!data || !data.length){
+				psError();
+				return;
+			}
+			var html = '<ul>';
+			var up = true;
+			for (var i=0, l=data.length; i<l; i++){
+				var d = data[i];
+				html += '<li class="' + d.state + '">'
+					+ '<strong>' + d.process + '</strong> '
+					+ d.pretty_state
+					+ '</li>';
+				if (!/^up/.test(d.state)) up = false;
+			}
+			html += '</ul>';
+			$status.html(html);
+			if (!up) $restart.removeClass('hidden');
+		},
+		error: psError,
+		complete: function(){
+			loading = false;
+			loads++;
+			if (loads >= 2) $reload.prop('disabled', false);
+		}
+	});
+
+	var logsError = function(){
+		$logs.html('<div class="alert alert-error">Unable to load logs of the app.</div>');
+	};
+	$.ajax({
+		url: '/api/logs',
+		success: function(data){
+			if (!data){
+				logsError();
+				return;
+			}
+			var html = '<pre>' + data + '</pre>';
+			$logs.html(html);
+			var $pre = $logs.find('pre');
+			var pre = $pre[0];
+			$pre.css('height', (window.innerHeight - pre.offsetTop - 30) + 'px');
+			pre.scrollTop = pre.scrollHeight;
+		},
+		error: logsError,
+		complete: function(){
+			loading = false;
+			loads++;
+			if (loads >= 2) $reload.prop('disabled', false);
+		}
+	});
+};
+
+loadData();
+
+var paused = false;
+$logs.bind('mouseover', function(){
+	paused = true;
+});
+$logs.bind('mouseout', function(){
+	paused = false;
+});
+$(window).blur(function(){
+	paused = true;
+});
+$(window).focus(function(){
+	paused = false;
+});
+setInterval(function(){
+	if (!paused) loadData();
+}, 60*1000);
+
+$reload.click(loadData);
+
+$restart.click(function(){
+	$restart.addClass('hidden');
+	$.post('/api/ps/restart', function(){
+		setTimeout(loadData, 5000); // Give some time for it to restart
+	});
+});
+</script>

@@ -11,6 +11,7 @@ Set up
 - set up `config.json` with example file `config.json.example` OR set environment variables with these variables:
   - `appName` - the app name (hosted on Heroku)
   - `apiKey` - the API key
+  - `passcode` - the passcode you set to protect the 'restart' API call from public abuse
 - `node server.js`
 
 License

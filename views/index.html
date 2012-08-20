@@ -202,8 +202,9 @@ setInterval(function(){
 $reload.click(loadData);
 
 $restart.click(function(){
+	var passcode = prompt('Enter passcode');
 	$restart.addClass('hidden');
-	$.post('/api/ps/restart', function(){
+	$.post('/api/ps/restart', {passcode: passcode}, function(){
 		setTimeout(loadData, 5000); // Give some time for it to restart
 	});
 });

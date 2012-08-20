@@ -55,7 +55,7 @@ app.get('/api/ps', function(req, res){
 app.post('/api/ps/restart', function(req, res){
 	var url = 'https://api.heroku.com/apps/' + nconf.get('appName') + '/ps/restart';
 	console.log('POSTing ' + url);
-	var r = request({
+	var r = request.post({
 		url: url,
 		headers: headers
 	});

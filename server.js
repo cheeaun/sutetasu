@@ -54,11 +54,6 @@ app.get('/api/ps', function(req, res){
 
 app.post('/api/ps/restart', function(req, res){
 	var nPasscode = nconf.get('passcode');
-	if (!nPasscode){
-		console.error('No passcode set.');
-		res.send('');
-		return;
-	}
 	var passcode = req.body.passcode;
 	if (passcode != nPasscode){
 		console.error('Wrong passcode: ' + passcode);

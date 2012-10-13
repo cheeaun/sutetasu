@@ -67,6 +67,10 @@
 	list-style: none;
 	padding: 0;
 	margin: 0;
+	display: -webkit-box;
+	display: -moz-box;
+	display: box;
+	width: 100%;
 }
 #status-container ul li{
 	display: block;
@@ -75,6 +79,12 @@
 	color: #fff;
 	border-radius: 6px;
 	margin: 0 0 9px;
+	-webkit-box-flex: 1;
+	-moz-box-flex: 1;
+	box-flex: 1;
+}
+#status-container ul li:nth-child(n+2){
+	margin-left: 10px;
 }
 #status-container ul li.up{
 	background-color: #468847;
